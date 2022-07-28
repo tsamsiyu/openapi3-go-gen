@@ -1,0 +1,12 @@
+type: object
+properties:
+  id:
+    type: string
+  profile:
+    $ref: "./openapi.yaml/#/components/schemas/UserProfile"
+  company:
+    $ref: "./company.yaml"
+  merchant:
+    $ref: "./merchant.yaml"
+  photos:
+    $ref: "./openapi.yaml/#/components/schemas/Photos"

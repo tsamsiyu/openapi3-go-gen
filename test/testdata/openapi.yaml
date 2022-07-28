@@ -1,0 +1,83 @@
+openapi: "3.0.0"
+info:
+  description: Fabric Console
+  title: Fabric Console
+  version: 0.0.1
+paths: {}
+components:
+  schemas:
+    UserProfile:
+      $ref: "./user-profile.yaml"
+    Company:
+      $ref: "./company.yaml"
+    CreateUser:
+      $ref: "create-user.yaml"
+    Photos:
+      type: array
+      items:
+        type: string
+    Baz:
+      type: object
+      properties:
+        lol:
+          type: string
+    Monkey:
+      type: object
+      properties:
+        age:
+          type: integer
+          minimum: 3
+          exclusiveMinimum: true
+          maximum: 20
+          exclusiveMaximum: false
+    Unknown:
+      oneOf:
+        - type: string
+        - type: integer
+    Animal:
+      allOf:
+        - type: object
+          required: ["unknowns", "meow"]
+          properties:
+            meow:
+              type: string
+              maxLength: 255
+              minLength: 3
+              pattern: '^\d{3}-\d{2}-\d{4}$'
+            unknown:
+              $ref: "#/components/schemas/Unknown"
+            unknowns:
+              type: array
+              maxItems: 100
+              minItems: 5
+              items:
+                $ref: "#/components/schemas/Unknown"
+        - type: object
+          properties:
+            bark:
+              type: string
+              enum:
+                - rark
+                - bark
+                - kararak
+                - howk
+        - $ref: "#/components/schemas/Monkey"
+    Foo:
+      type: object
+      properties:
+        bar:
+          type: string
+        baz:
+          $ref: "#/components/schemas/Baz"
+        king:
+          type: object
+          properties:
+            years:
+              type: integer
+        queens:
+          type: array
+          items:
+            type: object
+            properties:
+              level:
+                type: integer

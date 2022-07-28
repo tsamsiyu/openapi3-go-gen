@@ -1,0 +1,93 @@
+package {{.PkgName}}
+
+import (
+    "errors"
+    "regexp"
+)
+
+type {{.Name}} struct {
+    {{- range .Props}}
+    {{.Name}} {{.GoType.Name}}
+    {{- end}}
+}
+
+func (instance *{{.Name}}) Validate() error {
+    {{- range $prop := .Props}}
+    {{- if and $prop.IsRequired $prop.GoType.IsNullable }}
+    if instance.{{$prop.Name}} == nil {
+        return errors.New("Value for field {{$prop.Name}} must be present")
+    }
+    {{- end}}
+
+    {{- if NotNil $prop.MaxLength }}
+    if len(instance.{{$prop.Name}}) > {{Deref $prop.MaxLength}} {
+        return errors.New("Field {{$prop.Name}} size should not be greater than {{Deref $prop.MaxLength}}")
+    }
+    {{- end}}
+
+    {{- if gt $prop.MinLength 0 }}
+    if len(instance.{{$prop.Name}}) < {{$prop.MinLength}} {
+        return errors.New("Field {{$prop.Name}} size should not be less than {{$prop.MinLength}}")
+    }
+    {{- end}}
+
+    {{- if NotNil .Max }}
+    {{- if .ExclusiveMax }}
+    if instance.{{$prop.Name}} >= {{Deref .Max}} {
+        return errors.New("Field {{$prop.Name}} should not be greater or equal than {{Deref .Max}}")
+    }
+    {{- else}}
+    if instance.{{$prop.Name}} > {{Deref .Max}} {
+        return errors.New("Field {{$prop.Name}} should not be greater than {{Deref .Max}}")
+    }
+    {{- end}}
+    {{- end}}
+
+    {{- if NotNil .Min }}
+    {{- if .ExclusiveMin }}
+    if instance.{{$prop.Name}} <= {{Deref .Min}} {
+        return errors.New("Field {{$prop.Name}} should not be less or equal than {{Deref .Min}}")
+    }
+    {{- else}}
+    if instance.{{$prop.Name}} < {{Deref .Min}} {
+        return errors.New("Field {{$prop.Name}} should not be less than {{Deref .Min}}")
+    }
+    {{- end}}
+    {{- end}}
+
+    {{- if ne .Pattern "" }}
+    if match, _ := regexp.MatchString(`{{.Pattern}}`, instance.{{$prop.Name}}); !match {
+         return errors.New("Field {{$prop.Name}} is not formatted correctly")
+    }
+    {{- end}}
+
+    {{- if .MaxItems }}
+    if len(instance.{{$prop.Name}}) > {{.MaxItems}} {
+        return errors.New("Number of elements of {{$prop.Name}} should not exceed {{.MaxItems}}")
+    }
+    {{- end}}
+
+    {{- if .MinItems }}
+    if len(instance.{{$prop.Name}}) < {{.MinItems}} {
+        return errors.New("Number of elements of {{$prop.Name}} should not be less than {{.MinItems}}")
+    }
+    {{- end}}
+
+    {{- if .Enum }}
+    contains := false
+    enum := []{{$prop.GoType.Name}}{ {{- range $index, $element := .Enum}} {{- if gt $index 0}},{{- end}} "{{$element}}" {{- end}} }
+    for _, v := range enum {
+        if v == instance.{{$prop.Name}} {
+            contains = true
+            break
+        }
+    }
+
+    if !contains {
+        return errors.New("Value for field {{$prop.Name}} is not allowed")
+    }
+    {{- end}}
+
+    {{- end}}
+    return nil
+}
