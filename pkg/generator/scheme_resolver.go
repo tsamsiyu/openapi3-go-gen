@@ -106,7 +106,7 @@ func (r *SchemaResolver) mapSchemaRefToProp(parentName string, parentSchema *spe
 
 		referenced := r.findSchema(modelName)
 		if referenced == nil {
-			msg := fmt.Sprintf("There is no component found by ref %s", schemaRef.Ref)
+			msg := fmt.Sprintf("There is no component [%s] found by ref %s", modelName, schemaRef.Ref)
 			panic(errors.New(msg).(any))
 		}
 
