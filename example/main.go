@@ -8,8 +8,8 @@ import (
 )
 
 const (
-	src  = "example/testdata2/openapi.yaml"
-	dest = "example/generated2"
+	src  = "example/testdata/openapi.yaml"
+	dest = "example/generated"
 )
 
 func main() {
