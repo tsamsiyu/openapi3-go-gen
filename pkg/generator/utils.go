@@ -19,6 +19,8 @@ func getCustomTypeSchemaRef(schemaRef *spec3.SchemaRef) *spec3.SchemaRef {
 
 	if isArray(schemaRef.Value.Type) {
 		targetSchemaRef = schemaRef.Value.Items
+	} else if schemaRef.Value.AllOf != nil && len(schemaRef.Value.AllOf) == 1 {
+		targetSchemaRef = schemaRef.Value.AllOf[0]
 	} else {
 		targetSchemaRef = schemaRef
 	}

@@ -27,29 +27,34 @@ func (f *Flattener) Flatten() map[string]*spec3.SchemaRef {
 }
 
 func (f *Flattener) collectDeepCustomPropsSchemaRef(schemaName string, schemaRef *spec3.SchemaRef, flatSchemaRefs map[string]*spec3.SchemaRef) {
-	var manyRefs *spec3.SchemaRefs
+	custom := getCustomTypeSchemaRef(schemaRef)
+	if custom == nil {
+		return
+	}
+
+	var manyRefs []*spec3.SchemaRef
 
 	if schemaRef.Value.AllOf != nil {
-		manyRefs = &schemaRef.Value.AllOf
+		manyRefs = schemaRef.Value.AllOf
 	}
 
 	if schemaRef.Value.OneOf != nil {
-		manyRefs = &schemaRef.Value.OneOf
+		manyRefs = schemaRef.Value.OneOf
 	}
 
 	if schemaRef.Value.AnyOf != nil {
-		manyRefs = &schemaRef.Value.AnyOf
+		manyRefs = schemaRef.Value.AnyOf
 	}
 
-	for propName, propSchema := range schemaRef.Value.Properties {
+	for propName, propSchema := range custom.Value.Properties {
 		propSchemaName := f.collectCustomSchemaRef(schemaName, propName, propSchema, flatSchemaRefs)
 		if propSchemaName != "" {
 			f.collectDeepCustomPropsSchemaRef(propSchemaName, propSchema, flatSchemaRefs)
 		}
 	}
 
-	if manyRefs != nil {
-		for _, elementSchema := range *manyRefs {
+	if manyRefs != nil && len(manyRefs) > 1 {
+		for _, elementSchema := range manyRefs {
 			f.collectDeepCustomPropsSchemaRef(schemaName, elementSchema, flatSchemaRefs)
 		}
 	}

@@ -194,6 +194,10 @@ func mapSimpleSchema2GoType(schema *spec3.Schema) *GoType {
 		}
 	}
 
+	if schema.AllOf != nil && len(schema.AllOf) == 1 {
+		return mapSimpleSchema2GoType(schema.AllOf[0].Value)
+	}
+
 	if schema.Type == "array" {
 		scalarGoType := mapScalarType2GoType(schema.Items.Value)
 		if scalarGoType != nil {
@@ -206,6 +210,10 @@ func mapSimpleSchema2GoType(schema *spec3.Schema) *GoType {
 				IsNullable: true,
 				IsPtr:      false,
 			}
+		}
+
+		if schema.Items.Value.AllOf != nil && len(schema.Items.Value.AllOf) == 1 {
+			return mapSimpleSchema2GoType(schema.Items.Value.AllOf[0].Value)
 		}
 
 		panic(errors.New(fmt.Sprintf("Not a simple array type provided: %s", schema.Items.Value.Type)).(any))
