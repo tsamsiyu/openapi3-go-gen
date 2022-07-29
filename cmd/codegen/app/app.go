@@ -20,11 +20,11 @@ func Run(input string, output string) error {
 	l.IsExternalRefsAllowed = true
 	doc, err := l.LoadFromFile(input)
 	if err != nil {
-		return errors.WithStack(err)
+		return errors.Wrapf(err, "failed while loading openapi spec")
 	}
 
 	if err := doc.Validate(rootCtx); err != nil {
-		return errors.WithStack(err)
+		return errors.Wrapf(err, "failed while validating openapi spec")
 	}
 
 	documentInspector := generator.NewFlattener(doc)
