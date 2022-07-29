@@ -1,11 +1,11 @@
 package openapi
 
 type CreateUser struct {
-	Company  Company
 	Id       string
 	Merchant Merchant
 	Photos   string
 	Profile  UserProfile
+	Company  Company
 }
 
 func (instance *CreateUser) Validate() error {

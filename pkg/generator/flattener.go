@@ -12,32 +12,50 @@ func NewFlattener(doc *spec3.T) *Flattener {
 	return &Flattener{doc: doc}
 }
 
-func (i *Flattener) Flatten() map[string]*spec3.SchemaRef {
+func (f *Flattener) Flatten() map[string]*spec3.SchemaRef {
 	flatSchemaRefs := make(map[string]*spec3.SchemaRef)
 
-	for schemaName, schema := range i.doc.Components.Schemas {
-		i.collectSchema("", schemaName, schema, flatSchemaRefs)
+	for schemaName, schema := range f.doc.Components.Schemas {
+		f.collectCustomSchemaRef("", schemaName, schema, flatSchemaRefs)
 	}
 
-	for schemaName, schema := range i.doc.Components.Schemas {
-		i.deepFlatSchemaRef(schemaName, schema, flatSchemaRefs)
+	for schemaName, schema := range f.doc.Components.Schemas {
+		f.collectDeepCustomPropsSchemaRef(schemaName, schema, flatSchemaRefs)
 	}
 
 	return flatSchemaRefs
 }
 
-func (i *Flattener) deepFlatSchemaRef(schemaName string, schemaRef *spec3.SchemaRef, flatSchemas map[string]*spec3.SchemaRef) {
-	custom := getCustomTypeSchemaRef(schemaRef)
+func (f *Flattener) collectDeepCustomPropsSchemaRef(schemaName string, schemaRef *spec3.SchemaRef, flatSchemaRefs map[string]*spec3.SchemaRef) {
+	var manyRefs *spec3.SchemaRefs
 
-	for propName, propSchema := range custom.Value.Properties {
-		propSchemaName := i.collectSchema(schemaName, propName, propSchema, flatSchemas)
+	if schemaRef.Value.AllOf != nil {
+		manyRefs = &schemaRef.Value.AllOf
+	}
+
+	if schemaRef.Value.OneOf != nil {
+		manyRefs = &schemaRef.Value.OneOf
+	}
+
+	if schemaRef.Value.AnyOf != nil {
+		manyRefs = &schemaRef.Value.AnyOf
+	}
+
+	for propName, propSchema := range schemaRef.Value.Properties {
+		propSchemaName := f.collectCustomSchemaRef(schemaName, propName, propSchema, flatSchemaRefs)
 		if propSchemaName != "" {
-			i.deepFlatSchemaRef(propSchemaName, propSchema, flatSchemas)
+			f.collectDeepCustomPropsSchemaRef(propSchemaName, propSchema, flatSchemaRefs)
+		}
+	}
+
+	if manyRefs != nil {
+		for _, elementSchema := range *manyRefs {
+			f.collectDeepCustomPropsSchemaRef(schemaName, elementSchema, flatSchemaRefs)
 		}
 	}
 }
 
-func (i *Flattener) collectSchema(
+func (f *Flattener) collectCustomSchemaRef(
 	parentName string,
 	name string,
 	schema *spec3.SchemaRef,

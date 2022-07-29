@@ -6,23 +6,14 @@ import (
 )
 
 type Animal struct {
-	Meow     string
 	Unknown  interface{}
 	Unknowns []interface{}
+	Meow     string
 	Bark     string
 	Age      int
 }
 
 func (instance *Animal) Validate() error {
-	if len(instance.Meow) > 255 {
-		return errors.New("Field Meow size should not be greater than 255")
-	}
-	if len(instance.Meow) < 3 {
-		return errors.New("Field Meow size should not be less than 3")
-	}
-	if match, _ := regexp.MatchString(`^\d{3}-\d{2}-\d{4}$`, instance.Meow); !match {
-		return errors.New("Field Meow is not formatted correctly")
-	}
 	if instance.Unknowns == nil {
 		return errors.New("Value for field Unknowns must be present")
 	}
@@ -32,16 +23,25 @@ func (instance *Animal) Validate() error {
 	if len(instance.Unknowns) < 5 {
 		return errors.New("Number of elements of Unknowns should not be less than 5")
 	}
-	contains := false
+	if len(instance.Meow) > 255 {
+		return errors.New("Field Meow size should not be greater than 255")
+	}
+	if len(instance.Meow) < 3 {
+		return errors.New("Field Meow size should not be less than 3")
+	}
+	if match, _ := regexp.MatchString(`^\d{3}-\d{2}-\d{4}$`, instance.Meow); !match {
+		return errors.New("Field Meow is not formatted correctly")
+	}
+	containsBark := false
 	enum := []string{"rark", "bark", "kararak", "howk"}
 	for _, v := range enum {
 		if v == instance.Bark {
-			contains = true
+			containsBark = true
 			break
 		}
 	}
 
-	if !contains {
+	if !containsBark {
 		return errors.New("Value for field Bark is not allowed")
 	}
 	if instance.Age > 20 {

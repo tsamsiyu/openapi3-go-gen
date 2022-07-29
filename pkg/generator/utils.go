@@ -35,7 +35,7 @@ func isInterface(schema *spec3.Schema) bool {
 		return true
 	}
 
-	if schema.Type == "object" && (schema.Properties == nil) || len(schema.Properties) < 1 {
+	if schema.Type == "object" && (schema.Properties == nil || len(schema.Properties) < 1) {
 		return true
 	}
 
@@ -51,7 +51,7 @@ func isArray(tp string) bool {
 }
 
 func modelToFilename(modelName string) string {
-	return strcase.ToLowerCamel(modelName)
+	return strcase.ToSnake(modelName)
 }
 
 func getBaseFilename(path string) string {

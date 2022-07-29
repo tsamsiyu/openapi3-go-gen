@@ -1,10 +1,10 @@
 package openapi
 
 type Foo struct {
-	King   FooKing
-	Queens []FooQueen
 	Bar    string
 	Baz    Baz
+	King   FooKing
+	Queens []FooQueen
 }
 
 func (instance *Foo) Validate() error {

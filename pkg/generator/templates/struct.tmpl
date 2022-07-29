@@ -74,16 +74,16 @@ func (instance *{{.Name}}) Validate() error {
     {{- end}}
 
     {{- if .Enum }}
-    contains := false
+    contains{{$prop.Name}} := false
     enum := []{{$prop.GoType.Name}}{ {{- range $index, $element := .Enum}} {{- if gt $index 0}},{{- end}} "{{$element}}" {{- end}} }
     for _, v := range enum {
         if v == instance.{{$prop.Name}} {
-            contains = true
+            contains{{$prop.Name}} = true
             break
         }
     }
 
-    if !contains {
+    if !contains{{$prop.Name}} {
         return errors.New("Value for field {{$prop.Name}} is not allowed")
     }
     {{- end}}
