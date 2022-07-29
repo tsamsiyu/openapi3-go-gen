@@ -27,7 +27,9 @@ func (i *Flattener) Flatten() map[string]*spec3.SchemaRef {
 }
 
 func (i *Flattener) deepFlatSchemaRef(schemaName string, schemaRef *spec3.SchemaRef, flatSchemas map[string]*spec3.SchemaRef) {
-	for propName, propSchema := range schemaRef.Value.Properties {
+	custom := getCustomTypeSchemaRef(schemaRef)
+
+	for propName, propSchema := range custom.Value.Properties {
 		propSchemaName := i.collectSchema(schemaName, propName, propSchema, flatSchemas)
 		if propSchemaName != "" {
 			i.deepFlatSchemaRef(propSchemaName, propSchema, flatSchemas)
@@ -61,20 +63,4 @@ func (i *Flattener) collectSchema(
 	flatSchemaRefs[modelName] = custom
 
 	return modelName
-}
-
-func getCustomTypeSchemaRef(schemaRef *spec3.SchemaRef) *spec3.SchemaRef {
-	var targetSchemaRef *spec3.SchemaRef
-
-	if isArray(schemaRef.Value.Type) {
-		targetSchemaRef = schemaRef.Value.Items
-	} else {
-		targetSchemaRef = schemaRef
-	}
-
-	if isScalar(targetSchemaRef.Value.Type) || isInterface(targetSchemaRef.Value) {
-		return nil
-	}
-
-	return targetSchemaRef
 }

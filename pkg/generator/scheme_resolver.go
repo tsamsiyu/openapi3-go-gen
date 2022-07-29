@@ -88,7 +88,9 @@ func (r *SchemaResolver) findSchema(name string) *spec3.SchemaRef {
 func (r *SchemaResolver) mapSchemaRefToProp(parentName string, parentSchema *spec3.Schema, name string, schemaRef *spec3.SchemaRef) *Prop {
 	var prop *Prop
 
-	if !isCustomType(schemaRef.Value) {
+	custom := getCustomTypeSchemaRef(schemaRef)
+
+	if custom == nil {
 		prop = &Prop{
 			Schema:     schemaRef.Value,
 			Name:       propName(name),
@@ -98,20 +100,20 @@ func (r *SchemaResolver) mapSchemaRefToProp(parentName string, parentSchema *spe
 	} else {
 		var modelName string
 
-		if schemaRef.Ref != "" {
-			modelName = refToModelName(schemaRef.Ref)
+		if custom.Ref != "" {
+			modelName = refToModelName(custom.Ref)
 		} else {
 			modelName = embeddedObjectToModelName(parentName, name)
 		}
 
 		referenced := r.findSchema(modelName)
 		if referenced == nil {
-			msg := fmt.Sprintf("There is no component [%s] found by ref %s", modelName, schemaRef.Ref)
+			msg := fmt.Sprintf("There is no component [%s] found by ref %s", modelName, custom.Ref)
 			panic(errors.New(msg).(any))
 		}
 
 		prop = &Prop{
-			Schema:     schemaRef.Value,
+			Schema:     custom.Value,
 			Name:       propName(name),
 			GoType:     mapCustomSchemaToGoType(modelName, schemaRef.Value),
 			IsRequired: isPropRequired(parentSchema.Required, name),
@@ -119,22 +121,6 @@ func (r *SchemaResolver) mapSchemaRefToProp(parentName string, parentSchema *spe
 	}
 
 	return prop
-}
-
-func isCustomType(schema *spec3.Schema) bool {
-	if isScalar(schema.Type) || isInterface(schema) {
-		return false
-	}
-
-	if !isArray(schema.Type) {
-		return true
-	}
-
-	if isScalar(schema.Items.Value.Type) || isInterface(schema.Items.Value) {
-		return false
-	}
-
-	return true
 }
 
 func mapCustomSchemaToGoType(typeName string, schema *spec3.Schema) *GoType {
@@ -200,7 +186,7 @@ func mapSimpleSchema2GoType(schema *spec3.Schema) *GoType {
 		return scalarGoType
 	}
 
-	if schema.OneOf != nil || schema.AnyOf != nil {
+	if schema.OneOf != nil || schema.AnyOf != nil || schema.Type == "object" {
 		return &GoType{
 			Name:       "interface{}",
 			IsNullable: true,
@@ -214,7 +200,7 @@ func mapSimpleSchema2GoType(schema *spec3.Schema) *GoType {
 			return scalarGoType
 		}
 
-		if schema.Items.Value.OneOf != nil || schema.Items.Value.AnyOf != nil {
+		if schema.Items.Value.OneOf != nil || schema.Items.Value.AnyOf != nil || schema.Items.Value.Type == "object" {
 			return &GoType{
 				Name:       "[]interface{}",
 				IsNullable: true,
@@ -222,10 +208,10 @@ func mapSimpleSchema2GoType(schema *spec3.Schema) *GoType {
 			}
 		}
 
-		panic(errors.New(fmt.Sprintf("Not simple array type provided: %s", schema.Items.Value.Type)).(any))
+		panic(errors.New(fmt.Sprintf("Not a simple array type provided: %s", schema.Items.Value.Type)).(any))
 	}
 
-	panic(errors.New(fmt.Sprintf("Not simple type provided: %s", schema.Type)).(any))
+	panic(errors.New(fmt.Sprintf("Not a simple type provided: %s", schema.Type)).(any))
 }
 
 func isPropRequired(objRequired []string, propName string) bool {

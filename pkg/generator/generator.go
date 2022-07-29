@@ -61,7 +61,7 @@ func NewGenerator() *Generator {
 
 func (g *Generator) Generate(models map[string]*Model, path string) error {
 	for name, model := range models {
-		file, err := os.Create(filepath.Join(path, name+".go"))
+		file, err := os.Create(filepath.Join(path, modelToFilename(name)+".go"))
 		if err != nil {
 			return err
 		}
