@@ -45,7 +45,7 @@ func isInterface(schema *spec3.Schema) bool {
 }
 
 func isScalar(tp string) bool {
-	return tp == "string" || tp == "integer" || tp == "boolean" || tp == "float"
+	return tp == "string" || tp == "integer" || tp == "boolean" || tp == "number"
 }
 
 func isArray(tp string) bool {

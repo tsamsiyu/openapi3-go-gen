@@ -43,6 +43,12 @@ components:
             type: string
           year:
             type: integer
+    Rocket:
+      allOf:
+        - type: object
+          properties:
+            speed:
+              type: number
     Animal:
       allOf:
         - type: object

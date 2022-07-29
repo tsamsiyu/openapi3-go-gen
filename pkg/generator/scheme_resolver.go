@@ -153,7 +153,7 @@ func mapScalarType2GoType(schema *spec3.Schema) *GoType {
 	switch schema.Type {
 	case "integer":
 		goTypeStr = "int"
-	case "float":
+	case "number":
 		goTypeStr = "float64"
 	case "boolean":
 		goTypeStr = "bool"
