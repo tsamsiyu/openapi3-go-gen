@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/pkg/errors"
 	"openapi3-go-gen/pkg/generator"
 
 	spec3 "github.com/getkin/kin-openapi/openapi3"
@@ -19,11 +20,11 @@ func Run(input string, output string) error {
 	l.IsExternalRefsAllowed = true
 	doc, err := l.LoadFromFile(input)
 	if err != nil {
-		return err
+		return errors.WithStack(err)
 	}
 
 	if err := doc.Validate(rootCtx); err != nil {
-		return err
+		return errors.WithStack(err)
 	}
 
 	documentInspector := generator.NewFlattener(doc)
@@ -38,17 +39,17 @@ func Run(input string, output string) error {
 
 	err = gen.Generate(models, output)
 	if err != nil {
-		return err
+		return errors.WithStack(err)
 	}
 
 	generatedPath, err := filepath.Abs(output)
 	if err != nil {
-		return err
+		return errors.WithStack(err)
 	}
 
 	cmd := exec.Command("goimports", "-w", generatedPath)
 	if err := cmd.Run(); err != nil {
-		return err
+		return errors.WithStack(err)
 	}
 
 	return nil

@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	err := app.Run("test/testdata/openapi.yaml", "test/generated")
+	err := app.Run("example/testdata/openapi.yaml", "example/generated")
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
