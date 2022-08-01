@@ -2,7 +2,7 @@ package app
 
 import (
 	"context"
-	"os/exec"
+	"os"
 	"path/filepath"
 	"time"
 
@@ -16,8 +16,13 @@ func Run(input string, output string) error {
 	rootCtx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 
+	if err := readTemplates(); err != nil {
+		return errors.WithStack(err)
+	}
+
 	l := spec3.NewLoader()
 	l.IsExternalRefsAllowed = true
+
 	doc, err := l.LoadFromFile(input)
 	if err != nil {
 		return errors.Wrapf(err, "failed while loading openapi spec")
@@ -27,9 +32,9 @@ func Run(input string, output string) error {
 		return errors.Wrapf(err, "failed while validating openapi spec")
 	}
 
-	documentInspector := generator.NewFlattener(doc)
+	flattener := generator.NewFlattener(doc)
 
-	flatSchemaRefs := documentInspector.Flatten()
+	flatSchemaRefs := flattener.Flatten()
 
 	schemaResolver := generator.NewSchemaResolver(flatSchemaRefs)
 
@@ -37,20 +42,22 @@ func Run(input string, output string) error {
 
 	gen := generator.NewGenerator()
 
-	err = gen.Generate(models, output)
-	if err != nil {
-		return errors.WithStack(err)
-	}
-
-	generatedPath, err := filepath.Abs(output)
-	if err != nil {
-		return errors.WithStack(err)
-	}
-
-	cmd := exec.Command("goimports", "-w", generatedPath)
-	if err := cmd.Run(); err != nil {
-		return errors.WithStack(err)
+	if err := gen.GenerateToFile(models, output); err != nil {
+		return err
 	}
 
 	return nil
+}
+
+func readTemplates() error {
+	var structTmplPath string
+
+	templatesFolder := os.Getenv("CODEGEN_TEMPLATES_FOLDER")
+	if templatesFolder == "" {
+		structTmplPath = "pkg/generator/templates/struct.tmpl"
+	} else {
+		structTmplPath = filepath.Join(templatesFolder, "struct.tmpl")
+	}
+
+	return generator.ReadTemplates(structTmplPath)
 }
