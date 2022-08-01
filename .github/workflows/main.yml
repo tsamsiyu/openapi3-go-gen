@@ -25,6 +25,7 @@ jobs:
 
   build-and-push-docker-image:
     runs-on: ubuntu-latest
+    needs: [test]
 
     steps:
       - name: Checkout
