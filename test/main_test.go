@@ -38,11 +38,8 @@ func beforeTest(t *testing.T) {
 	err = generator.ReadTemplates(tmplPath)
 	require.NoError(t, err)
 
-	err = os.RemoveAll(genPath)
-	require.NoError(t, err)
-
-	err = os.Remove(specPath)
-	require.NoError(t, err)
+	_ = os.RemoveAll(genPath)
+	_ = os.Remove(specPath)
 
 	err = os.Mkdir("gen", 0777)
 	require.NoError(t, err)
