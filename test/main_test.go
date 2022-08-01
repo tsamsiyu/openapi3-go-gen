@@ -54,6 +54,7 @@ func generate(yml string) error {
 	}
 
 	l := spec3.NewLoader()
+	l.IsExternalRefsAllowed = true
 
 	doc, err := l.LoadFromData([]byte(oasStr))
 	if err != nil {
@@ -83,7 +84,7 @@ func readGoFile(filename string) (string, error) {
 	return string(file), err
 }
 
-func TestOne(t *testing.T) {
+func TestSimplest(t *testing.T) {
 	beforeTest(t)
 
 	schemasYaml := `
@@ -119,4 +120,108 @@ func (instance *Foo) Validate() error {
 	require.NoError(t, err)
 
 	require.Equal(t, expected, f)
+}
+
+func TestSimplestRef(t *testing.T) {
+	beforeTest(t)
+
+	schemasYaml := `
+Foo:
+  type: object
+  properties:
+    bar:
+      $ref: "#/components/schemas/Bar"
+Bar:
+  type: object
+  properties:
+    name:
+      type: string
+`
+
+	expectedFoo := strings.TrimPrefix(`
+package openapi
+
+type Foo struct {
+	Bar Bar
+}
+
+func (instance *Foo) Validate() error {
+	return nil
+}
+`, "\n")
+
+	expectedBar := strings.TrimPrefix(`
+package openapi
+
+type Bar struct {
+	Name string
+}
+
+func (instance *Bar) Validate() error {
+	return nil
+}
+`, "\n")
+
+	err := generate(schemasYaml)
+	require.NoError(t, err)
+
+	foo, err := readGoFile("foo.go")
+	require.NoError(t, err)
+
+	bar, err := readGoFile("bar.go")
+	require.NoError(t, err)
+
+	require.Equal(t, expectedFoo, foo)
+	require.Equal(t, expectedBar, bar)
+}
+
+func TestSimplestNested(t *testing.T) {
+	beforeTest(t)
+
+	schemasYaml := `
+Foo:
+  type: object
+  properties:
+    bar:
+      type: object
+      properties:
+        name:
+          type: string
+`
+
+	expectedFoo := strings.TrimPrefix(`
+package openapi
+
+type Foo struct {
+	Bar FooBar
+}
+
+func (instance *Foo) Validate() error {
+	return nil
+}
+`, "\n")
+
+	expectedBar := strings.TrimPrefix(`
+package openapi
+
+type FooBar struct {
+	Name string
+}
+
+func (instance *FooBar) Validate() error {
+	return nil
+}
+`, "\n")
+
+	err := generate(schemasYaml)
+	require.NoError(t, err)
+
+	foo, err := readGoFile("foo.go")
+	require.NoError(t, err)
+
+	bar, err := readGoFile("foo_bar.go")
+	require.NoError(t, err)
+
+	require.Equal(t, expectedFoo, foo)
+	require.Equal(t, expectedBar, bar)
 }
