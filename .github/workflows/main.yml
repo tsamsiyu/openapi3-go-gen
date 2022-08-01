@@ -17,7 +17,10 @@ jobs:
         with:
           go-version: 1.18
 
-      - name: Test
+      - name: Install goimports tool
+        run: GO111MODULE=off go get golang.org/x/tools/cmd/goimports
+
+      - name: Run tests
         run: go test ./...
 
   build-and-push-docker-image:
