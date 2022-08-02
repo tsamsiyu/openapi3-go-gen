@@ -19,6 +19,12 @@ func (instance *{{.Name}}) Validate() error {
     }
     {{- end}}
 
+    {{- if and $prop.IsRequired (eq $prop.GoType.Name "string") }}
+    if instance.{{$prop.Name}} == "" {
+        return errors.New("Value for field {{$prop.Name}} must be not empty")
+    }
+    {{- end}}
+
     {{- if NotNil $prop.MaxLength }}
     if len(instance.{{$prop.Name}}) > {{Deref $prop.MaxLength}} {
         return errors.New("Field {{$prop.Name}} size should not be greater than {{Deref $prop.MaxLength}}")
@@ -75,8 +81,8 @@ func (instance *{{.Name}}) Validate() error {
 
     {{- if .Enum }}
     contains{{$prop.Name}} := false
-    enum := []{{$prop.GoType.Name}}{ {{- range $index, $element := .Enum}} {{- if gt $index 0}},{{- end}} "{{$element}}" {{- end}} }
-    for _, v := range enum {
+    enum{{$prop.Name}} := []{{$prop.GoType.Name}}{ {{- range $index, $element := .Enum}} {{- if gt $index 0}},{{- end}} "{{$element}}" {{- end}} }
+    for _, v := range enum{{$prop.Name}} {
         if v == instance.{{$prop.Name}} {
             contains{{$prop.Name}} = true
             break

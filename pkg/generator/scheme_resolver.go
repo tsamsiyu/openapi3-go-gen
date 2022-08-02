@@ -147,7 +147,7 @@ func mapCustomSchemaToGoType(typeName string, schema *spec3.Schema) *GoType {
 	}
 }
 
-func mapScalarType2GoType(schema *spec3.Schema) *GoType {
+func mapScalarType2GoType(schema *spec3.Schema, isArr bool) *GoType {
 	var goTypeStr string
 
 	switch schema.Type {
@@ -163,6 +163,14 @@ func mapScalarType2GoType(schema *spec3.Schema) *GoType {
 
 	if goTypeStr == "" {
 		return nil
+	}
+
+	if isArr {
+		return &GoType{
+			Name:       "[]" + goTypeStr,
+			IsNullable: true,
+			IsPtr:      false,
+		}
 	}
 
 	if schema.Nullable {
@@ -181,7 +189,7 @@ func mapScalarType2GoType(schema *spec3.Schema) *GoType {
 }
 
 func mapSimpleSchema2GoType(schema *spec3.Schema) *GoType {
-	scalarGoType := mapScalarType2GoType(schema)
+	scalarGoType := mapScalarType2GoType(schema, false)
 	if scalarGoType != nil {
 		return scalarGoType
 	}
@@ -199,7 +207,7 @@ func mapSimpleSchema2GoType(schema *spec3.Schema) *GoType {
 	}
 
 	if schema.Type == "array" {
-		scalarGoType := mapScalarType2GoType(schema.Items.Value)
+		scalarGoType := mapScalarType2GoType(schema.Items.Value, true)
 		if scalarGoType != nil {
 			return scalarGoType
 		}
