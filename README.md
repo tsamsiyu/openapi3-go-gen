@@ -13,6 +13,6 @@ Feel free to check `example` folder to see a generated result
 
 ### Usage
 
-Be sure there is `openapi.yaml` file and `generated` folder in your current directory, then type:
+Make sure there is `openapi.yaml` file and `generated` folder in your current directory, then type:
 
 > docker run --rm -v "$PWD:/usr/run" tsamsiyu/openapi3-go-gen --input=/usr/run/openapi.yaml --output=/usr/run/generated 
